@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Onest:wght@100..900&display=swap');
+@import "tailwindcss" theme(static);
+@source "../views/";
+@source "../../app/";
+
+body{
+    font-family: 'Bricolage Grotesque', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+}
+
+.container{
+    @apply mx-auto xl:max-w-[1200px];
+}
+
+header.banner {
+    @apply flex items-center justify-between;
+}
+
+header.banner .nav-primary #menu-primary-navigation{
+    @apply flex gap-4 items-center;
+}
+
+#menu-primary-navigation li a.menu-item {
+    @apply text-[16px] text-black font-semibold;
+}
+
+a:where(:not(.wp-element-button)){
+    text-decoration: none !important;
+}
+
+.wp-block-column {
+    @apply !mx-auto xl:max-w-[1200px];
+}
+
+.homepage-hero {
+    @apply min-h-[876px];
+}
+
+.homepage-hero .wp-block-column{
+    @apply my-auto;
+}
+
+.homepage-hero h1{
+    @apply mb-7 font-semibold !text-[128px] leading-[100px] tracking-wider;
+}

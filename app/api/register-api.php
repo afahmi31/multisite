@@ -1,0 +1,126 @@
+<?php
+
+function mcd_register_user(WP_REST_Request $request) {
+    $nonce = $request->get_header('X-WP-Nonce');
+    if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+        mst_rest_activity(
+            [
+                'method'   => 'POST',
+                'endpoint' => '/custom/v1/register',
+                'message'  => "nonce invalid"
+            ]
+        );
+        return mst_api_error('Nonce is invalid or has expired.', 403);
+    }
+
+    try {
+
+        // validation
+        $data = $request->get_json_params();
+        $errors = mst_validate_user($data);
+        if ($errors) {
+            return mst_api_error('Validation failed.',422, $errors);
+        }
+
+
+        $first_name = sanitize_text_field($request['first_name']);
+        $last_name  = sanitize_text_field($request['last_name']);
+        $email      = sanitize_email($request['email']);
+        $password   = $request['password'];
+
+
+        $username = sanitize_user(current(explode('@', $email)));
+
+        if (username_exists($username)) {
+            mst_rest_activity(
+                [
+                    'method'   => 'POST',
+                    'endpoint' => '/custom/v1/register',
+                    'message'  => "username exists"
+                ]
+            );
+            return mst_api_error('Username already exists.',400);
+        }
+
+        $user_id = wp_create_user($username, $password, $email);
+
+        if (is_wp_error($user_id)) {
+            mst_rest_activity(
+                [
+                    'method'   => 'POST',
+                    'endpoint' => '/custom/v1/register',
+                    'message'  =>  $user_id->get_error_message()
+                ]
+            );
+            return mst_api_error($user_id->get_error_message(), 400);
+        }
+
+        wp_update_user([
+            'ID' => $user_id,
+            'first_name' => $first_name,
+            'last_name'  => $last_name,
+        ]);
+
+        $user = new WP_User($user_id);
+        $user->set_role('member');
+
+        mst_rest_activity(
+            [
+                'method'   => 'POST',
+                'endpoint' => '/custom/v1/register',
+                'message'  => "Success register email : " . $email
+            ]
+        );
+        wp_send_json_success([
+            'message' => 'Registrasi berhasil.',
+            'user_id' => $user_id
+        ]);
+        return mst_api_success($user, 'Registration success', 200);
+    } catch (Throwable $e) {
+        mst_rest_activity(
+            [
+                'method'   => 'POST',
+                'endpoint' => '/custom/v1/register',
+                'message'  => "Error: " . $e->getMessage()
+            ]
+        );
+        return mst_api_error($e->getMessage());
+    }
+}
+
+function mst_validate_user($data, $update = false, $id = null) {
+    $errors = [];
+    if (empty($data['first_name'])) $errors['first_name'] = 'First Name is required.';
+    if (empty($data['last_name'])) $errors['last_name'] = 'Last Name is required.';
+    if (empty($data['last_name'])) $errors['last_name'] = 'Last Name is required.';
+    if (empty($data['password'])) {
+        $errors['password'] = 'Password is required.';
+    } elseif (strlen($data['password']) < 6) {
+        $errors['password'] = 'Password must be at least 6 characters.';
+    } // You can add more password validation rules here, like checking for special characters, etc.
+    elseif (!preg_match('/[A-Z]/', $data['password'])) {
+        $errors['password'] = 'Password must contain at least one uppercase letter.';
+    } elseif (!preg_match('/[a-z]/', $data['password'])) {
+        $errors['password'] = 'Password must contain at least one lowercase letter.';
+    } elseif (!preg_match('/[0-9]/', $data['password'])) {
+        $errors['password'] = 'Password must contain at least one number.';
+    } // Add more rules as needed for
+
+    if (empty($data['email'])) {
+        $errors['email'] = 'Email is required.';
+    } elseif (!is_email($data['email'])) {
+        $errors['email'] = 'Email is invalid.';
+    
+    } 
+    else {
+        $user = get_user_by('email', $data['email']);
+        if ($user && (!$update || $user->ID != $id)) {
+            $errors['email'] = 'Email already exists.';
+        }
+    }
+
+    if (empty($data['terms'])) {
+    $errors['terms'] = 'You must agree to the terms.';
+    }
+    return $errors;
+}
