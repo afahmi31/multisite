@@ -61,8 +61,13 @@ function mcd_register_user(WP_REST_Request $request) {
             'last_name'  => $last_name,
         ]);
 
+        
         $user = new WP_User($user_id);
         $user->set_role('member');
+
+        update_field('mst_verified', false, 'user_'.$user_id);
+        $token = mst_generate_verification_token($user_id);
+        mst_send_verification_email($user_id, $email, $token);
 
         mst_rest_activity(
             [
@@ -123,4 +128,26 @@ function mst_validate_user($data, $update = false, $id = null) {
     $errors['terms'] = 'You must agree to the terms.';
     }
     return $errors;
+}
+
+function mst_generate_verification_token($user_id) {
+    $token = wp_generate_password(32, false);
+    update_field('mst_email_verification_token', $token, 'user_'.$user_id);
+    return $token;
+}
+
+function mst_send_verification_email($user_id, $email, $token) {
+    $verification_link = site_url('/') . '?action=verify_email&user=' . $user_id .  '&email=' .$email .  '&token=' .$token;
+
+    $subject = 'Please Verify Your Email Address';
+
+    $message = sprintf(
+        "Hello,\n\nThank you for registering with us!\n\nTo complete your registration and activate your account, please verify your email address by clicking the link below:\n\n%s\n\nIf you did not create an account, you can safely ignore this email.\n\nBest regards,\n%s Team",
+        $verification_link,
+        get_bloginfo('name')
+    );
+
+    $headers = ['Content-Type: text/plain; charset=UTF-8'];
+
+    wp_mail($email, $subject, $message, $headers);
 }

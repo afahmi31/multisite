@@ -89,3 +89,19 @@ function mst_get_post_id_by_title( string $title = '', string $post_type = 'post
     error_log('mst_get_post_id_by_title -> ' . $title . '|' . $post_type);
     return empty( $posts ) ? get_the_ID() : $posts[0];
 }
+
+function mst_is_user_verified($user_id = null){
+  if (!is_user_logged_in(  )) {
+    return ;
+  }
+
+  if (is_null($user_id)) {
+    $user_id = get_current_user_id(  );
+  }
+
+  if (!function_exists('get_field')) {
+    return ;
+  }
+
+  return get_field('mst_verified','user_'.$user_id);
+}

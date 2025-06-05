@@ -54,4 +54,10 @@ add_action('rest_api_init', function() {
         'callback' => 'mst_get_demo_sites',
         'permission_callback' => '__return_true',
     ] );
+
+     register_rest_route('mcd/v1', '/verify-email', [
+        'methods'  => 'POST',
+        'callback' => 'mcd_verify_email_token',
+        'permission_callback' => '__return_true',
+    ]);
 });
