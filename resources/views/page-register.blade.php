@@ -40,9 +40,10 @@
           <button type="submit" class="w-full bg-black text-white py-3 rounded-md hover:bg-gray-800 transition">
             Register
           </button>
-          <button type="button" class="w-full bg-black text-white py-3 rounded-md hover:bg-gray-800 transition">
+          <a rel="nofollow" href="https://indietech.io/wp-json/wslu-social-login/type/google" class="w-full bg-black text-white py-3 rounded-md hover:bg-gray-800 transition">Register Using Google Account </a>
+          {{-- <button type="button" class="w-full bg-black text-white py-3 rounded-md hover:bg-gray-800 transition">
             Register Using Google Account
-          </button>
+          </button> --}}
           <div class="invalid-feedback text-xs text-red-600 mt-1" data-error="form"></div>
         </div>
       </form>

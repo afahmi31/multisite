@@ -43,13 +43,13 @@
             Forgot password?
           </a>
         </div>
-
-        <button
+        <a rel="nofollow" href="https://indietech.io/wp-json/wslu-social-login/type/google" class="w-full bg-black text-white py-3 rounded-md hover:bg-gray-800 transition"> Sign In Using Google </a>
+        {{-- <button
           type="button"
           class="w-full bg-black text-white py-3 rounded-md hover:bg-gray-800 transition"
         >
           Sign In Using Google
-        </button>
+        </button> --}}
 
       </form>
 

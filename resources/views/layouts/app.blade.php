@@ -27,7 +27,7 @@
         @include('sections.header')
       @endif
 
-        <main id="main" class="main <?php echo 'content-wrapper__' . get_post_slug(get_the_ID()); echo get_post_slug(get_the_ID()) === 'dashboard' ? 'flex' : '';?>">
+        <main id="main" class="main <?php echo 'content-wrapper__' . get_post_slug(get_the_ID()); echo get_post_slug(get_the_ID()) === 'dashboard' ? ' flex' : '';?>">
           @if (get_post_slug(get_the_ID()) == 'dashboard')
       <aside class="max-w-[296px] w-full bg-[#EFEFEF] p-[32px] h-screen flex flex-col justify-between" >
         <div class="flex flex-col gap-4">
