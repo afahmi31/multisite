@@ -54,7 +54,7 @@ use function Laravel\Prompts\error;
 
         if (!empty($admins)) {
             if ($site->blog_id == 1) {
-                        continue; // Skip main site
+                        continue; 
                     }
              $details = get_blog_details($site->blog_id);
 
@@ -79,16 +79,12 @@ use function Laravel\Prompts\error;
 }
 
 function clone_site_content($source_blog_id, $target_blog_id) {
-    error_log('clone_site_content Start');
     switch_to_blog($source_blog_id);
-
     $posts = get_posts([
         'post_type' => ['post', 'page'],
         'numberposts' => -1,
     ]);
-
     restore_current_blog();
-
     switch_to_blog($target_blog_id);
     foreach ($posts as $post) {
         $new_post_id = wp_insert_post([
@@ -97,7 +93,6 @@ function clone_site_content($source_blog_id, $target_blog_id) {
             'post_status'  => $post->post_status,
             'post_type'    => $post->post_type,
         ]);
-        error_log('new_post_id -> ' . $new_post_id);
 
         if ($post->post_title === 'Homepage') {
             update_option('page_on_front', $new_post_id);
@@ -108,14 +103,7 @@ function clone_site_content($source_blog_id, $target_blog_id) {
         }
     }
     restore_current_blog();
-
-    error_log('clone_site_content End');
-
-    // Clone media and ACF (optional, handled below)
-    error_log('clone_site_media Start');
     clone_site_media($source_blog_id, $target_blog_id);
-    error_log('clone_site_media End');
-
     if (function_exists('get_fields')) {
         error_log('clone_site_acf_options Start');
         clone_site_acf_options($source_blog_id, $target_blog_id);
@@ -133,11 +121,9 @@ function clone_site_media($source_blog_id, $target_blog_id) {
 
     foreach ($media_items as $media) {
         switch_to_blog($target_blog_id);
-        // Optionally copy file physically if needed
         $new_media = [
             'post_title'     => $media->post_title,
             'post_mime_type' => $media->post_mime_type,
-            'guid'           => $media->guid, // optionally update to match new
             'post_type'      => 'attachment',
             'post_status'    => 'inherit',
         ];
@@ -147,7 +133,6 @@ function clone_site_media($source_blog_id, $target_blog_id) {
 }
 
 function clone_site_acf_options($source_blog_id, $target_blog_id) {
-    // Only works if ACF options pages or custom theme mods used
     if (!function_exists('get_fields')) {
         return ;
     }
@@ -165,7 +150,6 @@ function clone_site_acf_options($source_blog_id, $target_blog_id) {
 }
 
 function clone_site_acf_post_type($source_blog_id, $target_blog_id, $post_id, $new_post_id) {
-    // Only works if ACF options pages or custom theme mods used
     if (!function_exists('get_fields')) {
         return ;
     }
@@ -183,7 +167,6 @@ function clone_site_acf_post_type($source_blog_id, $target_blog_id, $post_id, $n
 }
 
 function clone_site_settings($source_blog_id, $target_blog_id) {
-    error_log('clone_site_settings Start');
     switch_to_blog($source_blog_id);
     $theme = wp_get_theme();
     $settings_to_copy = [
@@ -304,15 +287,10 @@ function clone_site_widgets($source_blog_id, $target_blog_id) {
 }
 
 function clone_site_menus($source_blog_id, $target_blog_id) {
-    error_log('clone_site_menus Start');
-
-    // Pindah ke blog sumber untuk mengambil data
     switch_to_blog($source_blog_id);
     $menus = wp_get_nav_menus();
     $menu_data = [];
     $demo_theme_mod = get_theme_mods();
-    error_log('menus Item demo -> ' . json_encode($demo_theme_mod, JSON_PRETTY_PRINT));
-
     foreach ($menus as $menu) {
         $items = wp_get_nav_menu_items($menu->term_id);
         error_log('menus demo -> ' . json_encode($menu, JSON_PRETTY_PRINT));
@@ -322,20 +300,12 @@ function clone_site_menus($source_blog_id, $target_blog_id) {
             'items' => $items,
         ];
     }
-
-    // Kembali ke blog target untuk menanamkan data
     switch_to_blog($target_blog_id);
-    // foreach ($demo_theme_mod as $key => $value) {
-    //     set_theme_mod($key, $value);
-    // }
-
     $menu_mapping = [];
-
     $expected_location_to_menu_name = [
         'primary_navigation'   => 'Primary Menu',
         'secondary_navigation' => 'Secondary Menu',
     ];
-
     foreach ($menu_data as $menu) {
         $new_menu_id = wp_create_nav_menu($menu['name']);
         $menu_mapping[$menu['slug']] = $new_menu_id;
@@ -363,10 +333,6 @@ function clone_site_menus($source_blog_id, $target_blog_id) {
             }
         }
     }
-
-    error_log('menus target site -> ' . json_encode($menu_mapping, JSON_PRETTY_PRINT));
-
-
     $location_mapping = [];
     foreach ($expected_location_to_menu_name as $location => $menu_name) {
         foreach ($menu_mapping as $slug => $menu_id) {
@@ -377,12 +343,8 @@ function clone_site_menus($source_blog_id, $target_blog_id) {
             }
         }
     }
-    error_log('location_mapping'. json_encode($location_mapping, JSON_PRETTY_PRINT));
-
     if (!empty($location_mapping)) {
         set_theme_mod('nav_menu_locations', $location_mapping);
     }
-
     restore_current_blog();
-    error_log('clone_site_menus End');
 }

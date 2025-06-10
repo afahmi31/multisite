@@ -266,12 +266,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (response.ok) {
               const result = await response.json();
-              console.log(result);
-              // Hapus modal sebelumnya
               document.body.removeChild(resultModal);
               document.body.classList.remove("overflow-hidden");
           
-              // Buat modal sukses
               const successModal = document.createElement("div");
               successModal.id = "success-modal";
               successModal.className = "fixed inset-0 flex items-center justify-center z-50";

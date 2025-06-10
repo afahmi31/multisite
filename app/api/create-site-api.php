@@ -184,13 +184,10 @@ function mcd_create_site(WP_REST_Request $request) {
 
     restore_current_blog();
 
-        // 'show_on_front',
-        // 'page_on_front',
-
-        clone_site_content($demo_site->blog_id, $site_id);
-        clone_site_menus($demo_site->blog_id, $site_id);
-        clone_site_widgets($demo_site->blog_id, $site_id);
-        clone_site_settings($demo_site->blog_id, $site_id);
+    clone_site_content($demo_site->blog_id, $site_id);
+    clone_site_menus($demo_site->blog_id, $site_id);
+    clone_site_widgets($demo_site->blog_id, $site_id);
+    clone_site_settings($demo_site->blog_id, $site_id);
     
     mst_rest_activity(
             [

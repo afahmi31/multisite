@@ -104,7 +104,6 @@ function mcd_register_user(WP_REST_Request $request) {
 
     try {
 
-        // validation
         $data = $request->get_json_params();
         $errors = mst_validate_user($data);
         if ($errors) {
@@ -191,14 +190,13 @@ function mst_validate_user($data, $update = false, $id = null) {
         $errors['password'] = 'Password is required.';
     } elseif (strlen($data['password']) < 6) {
         $errors['password'] = 'Password must be at least 6 characters.';
-    } // You can add more password validation rules here, like checking for special characters, etc.
     elseif (!preg_match('/[A-Z]/', $data['password'])) {
         $errors['password'] = 'Password must contain at least one uppercase letter.';
     } elseif (!preg_match('/[a-z]/', $data['password'])) {
         $errors['password'] = 'Password must contain at least one lowercase letter.';
     } elseif (!preg_match('/[0-9]/', $data['password'])) {
         $errors['password'] = 'Password must contain at least one number.';
-    } // Add more rules as needed for
+    } /
 
     if (empty($data['email'])) {
         $errors['email'] = 'Email is required.';
