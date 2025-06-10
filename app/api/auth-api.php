@@ -190,13 +190,14 @@ function mst_validate_user($data, $update = false, $id = null) {
         $errors['password'] = 'Password is required.';
     } elseif (strlen($data['password']) < 6) {
         $errors['password'] = 'Password must be at least 6 characters.';
+    }
     elseif (!preg_match('/[A-Z]/', $data['password'])) {
         $errors['password'] = 'Password must contain at least one uppercase letter.';
     } elseif (!preg_match('/[a-z]/', $data['password'])) {
         $errors['password'] = 'Password must contain at least one lowercase letter.';
     } elseif (!preg_match('/[0-9]/', $data['password'])) {
         $errors['password'] = 'Password must contain at least one number.';
-    } /
+    } 
 
     if (empty($data['email'])) {
         $errors['email'] = 'Email is required.';
