@@ -1,10 +1,8 @@
 <?php
 
-require get_template_directory() . '/app/api/custom-api.php'; 
 require get_template_directory() . '/app/api/server-api.php'; 
-require get_template_directory() . '/app/api/register-api.php'; 
-require get_template_directory() . '/app/api/create-site.php'; 
-require get_template_directory() . '/app/multisite.php'; 
+require get_template_directory() . '/app/api/auth-api.php'; 
+require get_template_directory() . '/app/api/create-site-api.php'; 
 
 add_action('rest_api_init', function() {
     register_rest_route('custom/v1', '/login', [
@@ -62,3 +60,14 @@ add_action('rest_api_init', function() {
         'permission_callback' => '__return_true',
     ]);
 });
+
+
+// Register Ajax
+add_action('wp_ajax_check_email_availability', 'check_email_availability');
+add_action('wp_ajax_nopriv_check_email_availability', 'check_email_availability');
+
+add_action('wp_ajax_check_site_availability', 'mcd_check_site_availability');
+add_action('wp_ajax_nopriv_check_site_availability', 'mcd_check_site_availability');
+
+add_action('wp_ajax_check_site_title_availability', 'mcd_check_site_title_availability');
+add_action('wp_ajax_nopriv_check_site_title_availability', 'mcd_check_site_title_availability');

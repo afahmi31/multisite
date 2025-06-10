@@ -62,7 +62,6 @@ collect(['setup', 'filters'])
 
     
 
-require get_template_directory() . '/app/api/init.php'; 
-require get_template_directory() . '/app/customhelper.php'; 
-// require get_template_directory() . '/devtools/init.php'; 
+require get_template_directory() . '/app/api/init.php';
 require get_template_directory() . '/app/helpers.php';
+require get_template_directory() . '/app/multisite-helper.php'; 

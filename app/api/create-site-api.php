@@ -1,54 +1,60 @@
 <?php
 
-function mcd_user_login(WP_REST_Request $request) {
-    $nonce = $request->get_header('X-WP-Nonce');
-    if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
-        mst_rest_activity(
-            [
-                'method'   => 'POST',
-                'endpoint' => '/custom/v1/login',
-                'message'  => "nonce invalid"
-            ]
-        );
-        wp_send_json_error(['message' => 'Nonce is invalid or has expired.'], 403);
+function mcd_check_site_availability($site_name) {
+    if (empty($site_name)) {
+        if (!isset($_GET['site_name']) || empty($_GET['site_name'])) {
+            wp_send_json(['available' => false]);
+        }
+        $site_name = sanitize_user($_GET['site_name']);
     }
 
-    $creds = [
-        'user_login'    => sanitize_text_field($request['email']),
-        'user_password' => $request['password'],
-        'remember'      => true,
-    ];
+    $site = get_current_site();
+    $parent_domain = $site->domain;
 
-    // $user = wp_signon($creds, is_ssl());
-    
-    $user = wp_signon($creds, false);
+    $domain = $site_name . '.' . $parent_domain;
+    $site_exists = domain_exists($domain, '/', 1);
+    if ($site_exists) {
+        wp_send_json(['available' => false]);
+        return false;
+    } else {
+         wp_send_json(['available' => true]);
+         return true;
+    }
+}
 
-    if ( is_wp_error($user) ) {
-        wp_send_json_error(['message' => $user->get_error_message()], 401);
-        mst_rest_activity(
-            [
-                'method'   => 'POST',
-                'endpoint' => '/custom/v1/login',
-                'message'  => "Error : " . $user->get_error_message()
-            ]
-        );
-        return ;
-    }    
-        wp_set_current_user($user->ID);
-        wp_set_auth_cookie($user->ID, true);
-        do_action('mcd_act_login_success', $user->ID);
-        mst_rest_activity(
-            [
-                'method'   => 'POST',
-                'endpoint' => '/custom/v1/login',
-                'message'  => "login success"
-            ]
-        );
-        wp_send_json_success([
-            'message' => 'Login berhasil.',
-            'user_id' => $user->ID
-        ]);
-    
+
+function mcd_check_site_title_availability($site_title) {
+    global $wpdb;
+    if (empty($site_title)) {
+        if (!isset($_GET['site_title']) || empty($_GET['site_title'])) {
+            wp_send_json(['available' => false]);
+        }
+        $site_title = sanitize_text_field($_GET['site_title']);
+    }
+    $found = false;
+
+    $sites = get_sites();
+
+    foreach ($sites as $site) {
+        $blog_id = $site->blog_id;
+
+        switch_to_blog($blog_id);
+        $current_title = get_option('blogname');
+        restore_current_blog();
+
+        if (strtolower($current_title) === strtolower($site_title)) {
+            $found = true;
+            break;
+        }
+    }
+
+    if ($found) {
+        wp_send_json(['available' => false]);
+        return false;
+    } else {
+        wp_send_json(['available' => true]);
+        return true;
+    }
 }
 
 function mcd_create_site(WP_REST_Request $request) {
@@ -171,7 +177,7 @@ function mcd_create_site(WP_REST_Request $request) {
     update_blog_option($site_id, 'stylesheet', $stylesheet);
     update_blog_option($site_id, 'template', $template);
 
-    // Paksa URL HTTPS
+    // URL HTTPS
     $https_url = 'https://' . $site_url;
     update_blog_option($site_id, 'siteurl', $https_url);
     update_blog_option($site_id, 'home', $https_url);
@@ -233,8 +239,8 @@ function mcd_get_user_sites(WP_REST_Request $request) {
 
      $main_site_url = get_home_url(get_main_site_id());
     foreach ($blogs as $blog_id => $blog) {
-        // if($blog->siteurl !== $main_site_url){
-        if($blog->domain !== 'indietech.test'){
+        // if($blog->domain !== 'indietech.test'){
+        if($blog->siteurl !== $main_site_url){
             $sites[] = [
                 'site_id'    => $blog->userblog_id ?? $blog_id,
                 'site_url'   => $blog->siteurl,
@@ -255,43 +261,4 @@ function mcd_get_user_sites(WP_REST_Request $request) {
         'success' => true,
         'data' => $sites
     ], 200);
-}
-
-function custom_api_logout() {
-    wp_logout();
-    return new WP_REST_Response(['message' => 'Logged out successfully.'], 200);
-}
-
-function mcd_verify_email_token($user_id = null, $token = '', $email = '') {
-    if (empty($email)) {
-        return ['success' => false, 'message' => 'Email is required.'];
-    }
-    if (empty($user_id)) {
-        return ['success' => false, 'message' => 'User ID is required.'];
-    }
-    if (empty($token)) {
-        return ['success' => false, 'message' => 'Verification token is required.'];
-    }
-
-    $user = get_user_by_email( $email );
-
-    if (!$user) {
-        return ['success' => false, 'message' => 'User not found.'];
-    }
-
-    if (!hash_equals(strval($user_id), strval($user->ID))) {
-        return ['success' => false, 'message' => 'User does not match.'];
-    }
-
-    $stored_token = get_field('mst_email_verification_token', 'user_' . $user_id);
-
-
-    if (!$stored_token || !hash_equals($stored_token, $token)) {
-        return ['success' => false, 'message' => 'Invalid or expired verification token.'];
-    }
-
-    update_field('mst_verified', true, 'user_' . $user_id);
-    update_field('mst_email_verification_token', '', 'user_' . $user_id);
-
-    return ['success' => true, 'message' => 'Email verification successful.'];
 }

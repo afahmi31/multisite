@@ -1,4 +1,93 @@
 <?php
+function mcd_user_login(WP_REST_Request $request) {
+    $nonce = $request->get_header('X-WP-Nonce');
+    if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+        mst_rest_activity(
+            [
+                'method'   => 'POST',
+                'endpoint' => '/custom/v1/login',
+                'message'  => "nonce invalid"
+            ]
+        );
+        wp_send_json_error(['message' => 'Nonce is invalid or has expired.'], 403);
+    }
+
+    $creds = [
+        'user_login'    => sanitize_text_field($request['email']),
+        'user_password' => $request['password'],
+        'remember'      => true,
+    ];
+
+    // $user = wp_signon($creds, is_ssl());
+    
+    $user = wp_signon($creds, false);
+
+    if ( is_wp_error($user) ) {
+        wp_send_json_error(['message' => $user->get_error_message()], 401);
+        mst_rest_activity(
+            [
+                'method'   => 'POST',
+                'endpoint' => '/custom/v1/login',
+                'message'  => "Error : " . $user->get_error_message()
+            ]
+        );
+        return ;
+    }    
+        wp_set_current_user($user->ID);
+        wp_set_auth_cookie($user->ID, true);
+        do_action('mcd_act_login_success', $user->ID);
+        mst_rest_activity(
+            [
+                'method'   => 'POST',
+                'endpoint' => '/custom/v1/login',
+                'message'  => "login success"
+            ]
+        );
+        wp_send_json_success([
+            'message' => 'Login berhasil.',
+            'user_id' => $user->ID
+        ]);
+    
+}
+
+function custom_api_logout() {
+    wp_logout();
+    return new WP_REST_Response(['message' => 'Logged out successfully.'], 200);
+}
+
+function mcd_verify_email_token($user_id = null, $token = '', $email = '') {
+    if (empty($email)) {
+        return ['success' => false, 'message' => 'Email is required.'];
+    }
+    if (empty($user_id)) {
+        return ['success' => false, 'message' => 'User ID is required.'];
+    }
+    if (empty($token)) {
+        return ['success' => false, 'message' => 'Verification token is required.'];
+    }
+
+    $user = get_user_by_email( $email );
+
+    if (!$user) {
+        return ['success' => false, 'message' => 'User not found.'];
+    }
+
+    if (!hash_equals(strval($user_id), strval($user->ID))) {
+        return ['success' => false, 'message' => 'User does not match.'];
+    }
+
+    $stored_token = get_field('mst_email_verification_token', 'user_' . $user_id);
+
+
+    if (!$stored_token || !hash_equals($stored_token, $token)) {
+        return ['success' => false, 'message' => 'Invalid or expired verification token.'];
+    }
+
+    update_field('mst_verified', true, 'user_' . $user_id);
+    update_field('mst_email_verification_token', '', 'user_' . $user_id);
+
+    return ['success' => true, 'message' => 'Email verification successful.'];
+}
 
 function mcd_register_user(WP_REST_Request $request) {
     $nonce = $request->get_header('X-WP-Nonce');
@@ -151,9 +240,6 @@ function mst_send_verification_email($user_id, $email, $token) {
 
     wp_mail($email, $subject, $message, $headers);
 }
-
-add_action('wp_ajax_check_email_availability', 'check_email_availability');
-add_action('wp_ajax_nopriv_check_email_availability', 'check_email_availability');
 
 function check_email_availability() {
     if (!isset($_GET['email']) || empty($_GET['email'])) {
