@@ -1,3 +1,11 @@
+@php
+  $wpApiSettings = [
+    'ajax_root' => esc_url_raw(admin_url('admin-ajax.php')),
+    'root'      => esc_url_raw(rest_url()),
+    'nonce'     => wp_create_nonce('wp_rest'),
+    'user_id'   => get_current_user_id(),
+  ];
+@endphp
 <!doctype html>
 <html @php(language_attributes())>
   <head>
@@ -5,12 +13,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @php(do_action('get_header'))
     @php(wp_head())
+    
     <script>
-      const wpApiSettings = @json([
-        'root' => esc_url_raw(rest_url()),
-        'nonce' => wp_create_nonce('wp_rest'),
-        'user_id' => get_current_user_id()
-      ]);
+      const wpApiSettings =  @json($wpApiSettings);
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
   </head>

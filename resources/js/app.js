@@ -10,71 +10,7 @@ import './auth/register.js';
 import { fetchWebsite } from './list-website.js';
 
 document.addEventListener("DOMContentLoaded", function () {
-  console.log(wpApiSettings.nonce);
-  // const registerForm = document.getElementById('registerForm');
-  // if (registerForm) {
-  //   registerForm.addEventListener('submit', async function (e) {
-  //     e.preventDefault();
-
-  //     const form = e.target;
-  //     const submitButton = form.querySelector('button[type="submit"]');
-  //     const originalButtonText = submitButton.innerHTML;
-
-  //     submitButton.disabled = true;
-  //     submitButton.innerHTML = 'Loading...';
-
-  //     const data = {
-  //       first_name: form.first_name.value.trim(),
-  //       last_name: form.last_name.value.trim(),
-  //       email: form.email.value.trim(),
-  //       password: form.password.value.trim()
-  //     };
-
-  //     try {
-  //       const response = await fetch('/wp-json/custom/v1/register', {
-  //         method: 'POST',
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //           'X-WP-Nonce': wpApiSettings.nonce
-  //         },
-  //         body: JSON.stringify(data)
-  //       });
-
-  //       const result = await response.json();
-
-  //       if (response.ok && result.success) {
-  //         Swal.fire({
-  //               icon: "success",
-  //               title: "Success",
-  //               text: 'registration success',
-  //         });
-
-  //         form.reset();
-  //         setTimeout(() => {
-  //           window.location.href = '/login';
-  //         }, 2000);
-  //       } else {
-  //          let registerMsg = result.data.message ? result.data.message : 'Registrasi gagal.';
-  //          Swal.fire({
-  //               icon: "error",
-  //               title: "Error",
-  //               text: registerMsg,
-  //         });
-  //       }
-  //     } catch (error) {
-  //       Swal.fire({
-  //               icon: "error",
-  //               title: "Error",
-  //               text: error,
-  //       });
-  //       console.error('Error:', error);
-  //     } finally {
-  //       submitButton.disabled = false;
-  //       submitButton.innerHTML = originalButtonText;
-  //     }
-  //   });
-  // };
-
+  
   const loginForm = document.getElementById('loginForm');
   if (loginForm) {
     loginForm.addEventListener('submit', async function (e) {
@@ -145,7 +81,43 @@ document.addEventListener("DOMContentLoaded", function () {
         const startProjectBtns =
           document.querySelectorAll("#start-new-project");
           const startNewProject = document.querySelector('.start-new-project');
-        const nextBtn = document.querySelector("form #next");
+          const nextBtn = document.querySelector("form #next");
+
+          const siteInput = document.getElementById('site-name');
+          const messageEl = document.createElement('small');
+          messageEl.classList.add('text-sm', 'mt-1', 'block');
+          siteInput.parentNode.appendChild(messageEl);
+
+          let timeout = null;
+
+          siteInput.addEventListener('input', () => {
+            clearTimeout(timeout);
+            const sitename = siteInput.value.trim();
+
+            if (sitename.length < 3) {
+              messageEl.textContent = '';
+              return;
+            }else{
+                messageEl.textContent = 'Checking availability...';
+                messageEl.classList.remove('text-green-500', 'text-red-500');
+              timeout = setTimeout(() => {
+                fetch(wpApiSettings.ajax_root + '?action=check_site_availability&site_name=' + sitename)
+                  .then(res => res.json())
+                  .then(data => {
+                    if (data.available) {
+                      messageEl.textContent = '✅ Site name is available.';
+                      messageEl.classList.remove('text-red-500');
+                      messageEl.classList.add('text-green-500');
+                    } else {
+                      messageEl.textContent = '❌ Site name is already taken.';
+                      messageEl.classList.remove('text-green-500');
+                      messageEl.classList.add('text-red-500');
+                    }
+                  });
+              }, 1000);
+            }
+          });
+
 
         let formData = {
           orgName: "",

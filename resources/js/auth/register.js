@@ -9,6 +9,48 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('Register form:', form);
   if (!form) return;
 
+  const emailInput = form.querySelector('input[name="email"]');
+  const emailFeedback = form.querySelector('[data-error="email"]');
+  let timeout = null;
+
+    emailInput.addEventListener('input', function () {
+      const email = emailInput.value.trim();
+
+      // Reset timeout
+      if (timeout) clearTimeout(timeout);
+
+      // Tunggu 500ms setelah user berhenti mengetik
+      timeout = setTimeout(() => {
+        if (!email) {
+          emailFeedback.textContent = '';
+          return;
+        }
+
+        fetch(`${wpApiSettings.ajax_root}?action=check_email_availability&email=${encodeURIComponent(email)}`)
+          .then(response => response.json())
+          .then(data => {
+            if (!data.valid) {
+              emailFeedback.textContent = '❌ Invalid email format.';
+              emailInput.classList.add('border-red-500');
+              emailFeedback.classList.remove('available-email');
+            } else if (!data.available) {
+              emailFeedback.textContent = '❌ This email is already registered.';
+              emailInput.classList.add('border-red-500');
+              emailFeedback.classList.remove('available-email');
+            } else {
+              emailFeedback.textContent = '✅ Email is available.';
+              emailInput.classList.remove('border-red-500');
+              emailFeedback.classList.add('available-email');
+            }
+          })
+          .catch(() => {
+            emailFeedback.textContent = '❌ Unable to validate email.';
+            emailInput.classList.add('border-red-500');
+              emailFeedback.classList.remove('available-email');
+          });
+      }, 500);
+    });
+
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
     clearFormErrors(form);

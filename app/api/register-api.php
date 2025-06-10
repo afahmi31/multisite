@@ -151,3 +151,42 @@ function mst_send_verification_email($user_id, $email, $token) {
 
     wp_mail($email, $subject, $message, $headers);
 }
+
+add_action('wp_ajax_check_email_availability', 'check_email_availability');
+add_action('wp_ajax_nopriv_check_email_availability', 'check_email_availability');
+
+function check_email_availability() {
+    if (!isset($_GET['email']) || empty($_GET['email'])) {
+        wp_send_json([
+            'valid' => false,
+            'available' => false,
+            'message' => 'Email is required.'
+        ]);
+    }
+
+    $email = sanitize_email($_GET['email']);
+
+    if (!is_email($email)) {
+        wp_send_json([
+            'valid' => false,
+            'available' => false,
+            'message' => 'Invalid email format.'
+        ]);
+    }
+
+    $user = get_user_by('email', $email);
+
+    if ($user) {
+        wp_send_json([
+            'valid' => true,
+            'available' => false,
+            'message' => 'Email is already registered.'
+        ]);
+    } else {
+        wp_send_json([
+            'valid' => true,
+            'available' => true,
+            'message' => 'Email is available.'
+        ]);
+    }
+}

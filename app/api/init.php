@@ -3,6 +3,8 @@
 require get_template_directory() . '/app/api/custom-api.php'; 
 require get_template_directory() . '/app/api/server-api.php'; 
 require get_template_directory() . '/app/api/register-api.php'; 
+require get_template_directory() . '/app/api/create-site.php'; 
+require get_template_directory() . '/app/api/site-importer.php'; 
 require get_template_directory() . '/app/multisite.php'; 
 
 add_action('rest_api_init', function() {

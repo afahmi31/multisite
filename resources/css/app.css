@@ -42,3 +42,7 @@ a:where(:not(.wp-element-button)){
 .homepage-hero h1{
     @apply mb-7 font-semibold !text-[128px] leading-[100px] tracking-wider;
 }
+
+.invalid-feedback.available-email {
+    @apply !text-green-500;
+}

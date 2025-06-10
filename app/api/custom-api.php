@@ -91,6 +91,14 @@ function mcd_create_site(WP_REST_Request $request) {
         wp_send_json_error(['message' => 'Template cannot be empty.'], 400);
     }
 
+    if (mcd_check_site_availability($domain)) {
+        wp_send_json_error(['message' => 'Site name is already taken.'], 400);
+    }
+
+    if (mcd_check_site_title_availability($title)) {
+        wp_send_json_error(['message' => 'Site title is already taken.'], 400);
+    }
+
     $demo_site = get_blog_details([
         'domain' => $site_Template,
     ]);
@@ -151,10 +159,10 @@ function mcd_create_site(WP_REST_Request $request) {
         // 'show_on_front',
         // 'page_on_front',
 
-        clone_site_content($demo_site->blog_id, $site_id);
-        clone_site_menus($demo_site->blog_id, $site_id);
+        // clone_site_content($demo_site->blog_id, $site_id);
+        // clone_site_menus($demo_site->blog_id, $site_id);
         // clone_site_widgets($demo_site->blog_id, $site_id);
-        clone_site_settings($demo_site->blog_id, $site_id);
+        // clone_site_settings($demo_site->blog_id, $site_id);
     
     mst_rest_activity(
             [
