@@ -91,11 +91,33 @@ function mcd_create_site(WP_REST_Request $request) {
         wp_send_json_error(['message' => 'Template cannot be empty.'], 400);
     }
 
-    if (mcd_check_site_availability($domain)) {
+    $site = get_current_site();
+    $parent_domain = $site->domain;
+
+    $tempdomain = $domain . '.' . $parent_domain;
+    $site_exists = domain_exists($tempdomain, '/', 1);
+     if ($site_exists) {
         wp_send_json_error(['message' => 'Site name is already taken.'], 400);
+     }
+
+    $site_found = false;
+
+    $check_sites = get_sites();
+
+    foreach ($check_sites as $site) {
+        $blog_id = $site->blog_id;
+
+        switch_to_blog($blog_id);
+        $current_title = get_option('blogname');
+        restore_current_blog();
+
+        if (strtolower($current_title) === strtolower($title)) {
+            $site_found = true;
+            break;
+        }
     }
 
-    if (mcd_check_site_title_availability($title)) {
+    if ($site_found) {
         wp_send_json_error(['message' => 'Site title is already taken.'], 400);
     }
 
@@ -159,10 +181,10 @@ function mcd_create_site(WP_REST_Request $request) {
         // 'show_on_front',
         // 'page_on_front',
 
-        // clone_site_content($demo_site->blog_id, $site_id);
-        // clone_site_menus($demo_site->blog_id, $site_id);
-        // clone_site_widgets($demo_site->blog_id, $site_id);
-        // clone_site_settings($demo_site->blog_id, $site_id);
+        clone_site_content($demo_site->blog_id, $site_id);
+        clone_site_menus($demo_site->blog_id, $site_id);
+        clone_site_widgets($demo_site->blog_id, $site_id);
+        clone_site_settings($demo_site->blog_id, $site_id);
     
     mst_rest_activity(
             [

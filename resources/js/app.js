@@ -266,7 +266,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (response.ok) {
               const result = await response.json();
-          
+              console.log(result);
               // Hapus modal sebelumnya
               document.body.removeChild(resultModal);
               document.body.classList.remove("overflow-hidden");

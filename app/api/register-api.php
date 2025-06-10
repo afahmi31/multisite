@@ -29,7 +29,7 @@ function mcd_register_user(WP_REST_Request $request) {
         $password   = $request['password'];
 
 
-        $username = sanitize_user(current(explode('@', $email)));
+        $username = $email;
 
         if (username_exists($username)) {
             mst_rest_activity(

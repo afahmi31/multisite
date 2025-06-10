@@ -316,7 +316,6 @@ function clone_site_menus($source_blog_id, $target_blog_id) {
     foreach ($menus as $menu) {
         $items = wp_get_nav_menu_items($menu->term_id);
         error_log('menus demo -> ' . json_encode($menu, JSON_PRETTY_PRINT));
-        // error_log('menus Item demo -> ' . json_encode($items, JSON_PRETTY_PRINT));
         $menu_data[] = [
             'name'  => $menu->name,
             'slug'  => $menu->slug,
@@ -332,57 +331,57 @@ function clone_site_menus($source_blog_id, $target_blog_id) {
 
     $menu_mapping = [];
 
-    // foreach ($menu_data as $menu) {
-    //     $new_menu_id = wp_create_nav_menu($menu['name']);
-    //     $menu_mapping[$menu['slug']] = $new_menu_id;
+    $expected_location_to_menu_name = [
+        'primary_navigation'   => 'Primary Menu',
+        'secondary_navigation' => 'Secondary Menu',
+    ];
 
-    //     foreach ($menu['items'] as $item) {
-    //         if ($item->object === 'page') {
-    //             $source_ID = mst_get_post_id_by_title($item->title, 'page');
-    //             wp_update_nav_menu_item($new_menu_id, 0, [
-    //                 'menu-item-title'     => $item->title,
-    //                 'menu-item-url'       => get_permalink($source_ID),
-    //                 'menu-item-status'    => 'publish',
-    //                 'menu-item-type'      => $item->type,
-    //                 'menu-item-object'    => $item->object,
-    //                 'menu-item-object-id' => $source_ID,
-    //             ]);
-    //         } else {
-    //             wp_update_nav_menu_item($new_menu_id, 0, [
-    //                 'menu-item-title'     => $item->title,
-    //                 'menu-item-url'       => $item->url,
-    //                 'menu-item-status'    => 'publish',
-    //                 'menu-item-type'      => $item->type,
-    //                 'menu-item-object'    => $item->object,
-    //                 'menu-item-object-id' => $item->object_id,
-    //             ]);
-    //         }
-    //     }
-    // }
+    foreach ($menu_data as $menu) {
+        $new_menu_id = wp_create_nav_menu($menu['name']);
+        $menu_mapping[$menu['slug']] = $new_menu_id;
 
-    // Mapping lokasi menu ke ID menu berdasarkan nama
-    // $expected_location_to_menu_name = [
-    //     'primary_navigation'   => 'Primary Menu',
-    //     'secondary_navigation' => 'Secondary Menu',
-    // ];
+        foreach ($menu['items'] as $item) {
+            if ($item->object === 'page') {
+                $source_ID = mst_get_post_id_by_title($item->title, 'page');
+                wp_update_nav_menu_item($new_menu_id, 0, [
+                    'menu-item-title'     => $item->title,
+                    'menu-item-url'       => get_permalink($source_ID),
+                    'menu-item-status'    => 'publish',
+                    'menu-item-type'      => $item->type,
+                    'menu-item-object'    => $item->object,
+                    'menu-item-object-id' => $source_ID,
+                ]);
+            } else {
+                wp_update_nav_menu_item($new_menu_id, 0, [
+                    'menu-item-title'     => $item->title,
+                    'menu-item-url'       => $item->url,
+                    'menu-item-status'    => 'publish',
+                    'menu-item-type'      => $item->type,
+                    'menu-item-object'    => $item->object,
+                    'menu-item-object-id' => $item->object_id,
+                ]);
+            }
+        }
+    }
 
-    // error_log('menu_mapping'. json_encode($menu_mapping, JSON_PRETTY_PRINT));
+    error_log('menus target site -> ' . json_encode($menu_mapping, JSON_PRETTY_PRINT));
 
-    // $location_mapping = [];
-    // foreach ($expected_location_to_menu_name as $location => $menu_name) {
-    //     foreach ($menu_mapping as $slug => $menu_id) {
-    //         $menu_obj = wp_get_nav_menu_object($menu_id);
-    //         if ($menu_obj && $menu_obj->name === $menu_name) {
-    //             $location_mapping[$location] = $menu_id;
-    //             break;
-    //         }
-    //     }
-    // }
-    // error_log('location_mapping'. json_encode($location_mapping, JSON_PRETTY_PRINT));
 
-    // if (!empty($location_mapping)) {
-    //     set_theme_mod('nav_menu_locations', $location_mapping);
-    // }
+    $location_mapping = [];
+    foreach ($expected_location_to_menu_name as $location => $menu_name) {
+        foreach ($menu_mapping as $slug => $menu_id) {
+            $menu_obj = wp_get_nav_menu_object($menu_id);
+            if ($menu_obj && $menu_obj->name === str_replace('-','_',$menu_name)) {
+                $location_mapping[$location] = $menu_id;
+                break;
+            }
+        }
+    }
+    error_log('location_mapping'. json_encode($location_mapping, JSON_PRETTY_PRINT));
+
+    if (!empty($location_mapping)) {
+        set_theme_mod('nav_menu_locations', $location_mapping);
+    }
 
     restore_current_blog();
     error_log('clone_site_menus End');
