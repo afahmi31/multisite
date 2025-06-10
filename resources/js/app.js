@@ -130,7 +130,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         function openModal() {
           loadAvailableThemes()
-          console.log('hello world')
           modal.classList.remove("hidden");
           document.body.classList.add("overflow-hidden");
         }
@@ -248,10 +247,6 @@ document.addEventListener("DOMContentLoaded", function () {
           document
             .getElementById("confirm-project")
             .addEventListener("click", async  function (e) {
-
-
-            console.log("Creating site...");
-
             const form = document.querySelector(".website-form");
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());

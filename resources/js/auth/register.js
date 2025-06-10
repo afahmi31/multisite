@@ -6,7 +6,6 @@ import { showAlert } from '../components/Alert';
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('registerForm');
 
-  console.log('Register form:', form);
   if (!form) return;
 
   const emailInput = form.querySelector('input[name="email"]');
@@ -62,8 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const res = await apiPost('/wp-json/custom/v1/register', data);
-
-      console.log('API response:', res);
 
       if (res.errors && Object.keys(res.errors).length > 0) {
         injectFormErrors(form, res.errors);

@@ -84,7 +84,6 @@ function mst_get_post_id_by_title( string $title = '', string $post_type = 'post
         )
     );
 
-    error_log('mst_get_post_id_by_title -> ' . $title . '|' . $post_type);
     return empty( $posts ) ? get_the_ID() : $posts[0];
 }
 

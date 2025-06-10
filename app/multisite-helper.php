@@ -105,9 +105,7 @@ function clone_site_content($source_blog_id, $target_blog_id) {
     restore_current_blog();
     clone_site_media($source_blog_id, $target_blog_id);
     if (function_exists('get_fields')) {
-        error_log('clone_site_acf_options Start');
         clone_site_acf_options($source_blog_id, $target_blog_id);
-        error_log('clone_site_acf_options End');
     }
 }
 
@@ -258,7 +256,6 @@ function clone_site_settings($source_blog_id, $target_blog_id) {
     }
 
     restore_current_blog();
-    error_log('clone_site_settings End');
 }
 
 function clone_site_widgets($source_blog_id, $target_blog_id) {
@@ -293,7 +290,6 @@ function clone_site_menus($source_blog_id, $target_blog_id) {
     $demo_theme_mod = get_theme_mods();
     foreach ($menus as $menu) {
         $items = wp_get_nav_menu_items($menu->term_id);
-        error_log('menus demo -> ' . json_encode($menu, JSON_PRETTY_PRINT));
         $menu_data[] = [
             'name'  => $menu->name,
             'slug'  => $menu->slug,
